@@ -1,9 +1,17 @@
-from fastapi import FastAPI, Body
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import subprocess
+from fastapi.staticfiles import StaticFiles
 import os
 
-app = FastAPI(title="AI Novel Writing System", version="1.0.0")
+from app.core.config import settings
+from app.api import project, outline, chapter, audit, revise, model, finetune, publish
+
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    version=settings.APP_VERSION,
+    description="基于 InkOS Agent 的 AI 长篇小说创作系统"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -13,40 +21,39 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+for dir_name in [
+    settings.PROJECTS_DIR,
+    settings.MODELS_DIR,
+    settings.TRAINING_DATA_DIR,
+    settings.FINETUNE_TASKS_DIR,
+    settings.DB_DIR
+]:
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name, exist_ok=True)
+
+app.include_router(project.router)
+app.include_router(outline.router)
+app.include_router(chapter.router)
+app.include_router(audit.router)
+app.include_router(revise.router)
+app.include_router(model.router)
+app.include_router(finetune.router)
+app.include_router(publish.router)
+
+
 @app.get("/")
 def root():
-    return {"message": "AI Novel Writing System API", "version": "1.0.0"}
+    return {
+        "message": "AI Novel Writing System",
+        "version": settings.APP_VERSION,
+        "status": "running"
+    }
+
 
 @app.get("/api/health")
 def health_check():
     return {"status": "healthy"}
 
-@app.post("/api/project/create", summary="新建小说项目")
-def create_project(
-    title: str = Body(..., description="小说名称"),
-    genre: str = Body(..., description="小说题材"),
-    chapter_words: int = Body(3000, description="单章目标字数")
-):
-    cmd = f'inkos book create --title "{title}" --genre {genre} --chapter-words {chapter_words}'
-    result = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding="utf-8")
-    if result.returncode != 0:
-        return {"code": 500, "msg": "项目创建失败", "error": result.stderr}
-    return {"code": 200, "msg": "项目创建成功", "data": {"title": title, "genre": genre}}
-
-@app.get("/api/project/list", summary="获取项目列表")
-def list_projects():
-    return {"code": 200, "msg": "success", "data": []}
-
-@app.get("/api/model/list", summary="获取模型列表")
-def list_models():
-    return {"code": 200, "msg": "success", "data": []}
-
-@app.post("/api/chat/generate", summary="生成内容")
-def generate_content(
-    prompt: str = Body(..., description="提示词"),
-    model: str = Body("default", description="模型名称")
-):
-    return {"code": 200, "msg": "success", "data": {"content": "生成的内容"}}
 
 if __name__ == "__main__":
     import uvicorn

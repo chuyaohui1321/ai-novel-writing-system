@@ -1,28 +1,40 @@
 <template>
   <div id="app">
-    <el-container>
-      <el-header>
-        <h1>AI长篇小说创作系统</h1>
+    <el-container class="app-container">
+      <el-header class="app-header">
+        <div class="header-left">
+          <el-icon class="logo-icon"><Document /></el-icon>
+          <h1 class="app-title">AI长篇小说创作系统</h1>
+        </div>
+        <div class="header-right">
+          <router-link to="/model-config">
+            <el-button type="primary" :icon="Setting">模型配置</el-button>
+          </router-link>
+        </div>
       </el-header>
-      <el-container>
-        <el-aside width="200px">
-          <el-menu default-active="1">
-            <el-menu-item index="1">项目管理</el-menu-item>
-            <el-menu-item index="2">大纲编辑</el-menu-item>
-            <el-menu-item index="3">章节创作</el-menu-item>
-            <el-menu-item index="4">审计校验</el-menu-item>
-            <el-menu-item index="5">模型配置</el-menu-item>
-            <el-menu-item index="6">微调管理</el-menu-item>
-            <el-menu-item index="7">发布管理</el-menu-item>
+      <el-container class="main-container">
+        <el-aside width="220px" class="app-aside">
+          <el-menu
+            :default-active="activeMenu"
+            router
+            class="aside-menu"
+          >
+            <el-menu-item index="/projects">
+              <el-icon><Folder /></el-icon>
+              <span>项目管理</span>
+            </el-menu-item>
+            <el-menu-item index="/model-config">
+              <el-icon><Setting /></el-icon>
+              <span>模型配置</span>
+            </el-menu-item>
+            <el-menu-item index="/finetune">
+              <el-icon><MagicStick /></el-icon>
+              <span>模型微调</span>
+            </el-menu-item>
           </el-menu>
         </el-aside>
-        <el-main>
-          <el-card>
-            <template #header>
-              <span>欢迎使用 AI 长篇小说创作系统</span>
-            </template>
-            <p>基于 InkOS Agent 的本地化 AI 创作工具</p>
-          </el-card>
+        <el-main class="app-main">
+          <router-view />
         </el-main>
       </el-container>
     </el-container>
@@ -30,22 +42,69 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const activeMenu = computed(() => route.path)
 </script>
 
 <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 #app {
   height: 100vh;
 }
-.el-container {
+
+.app-container {
   height: 100%;
 }
-.el-header {
-  background-color: #409eff;
+
+.app-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  padding: 0 30px;
 }
-.el-aside {
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logo-icon {
+  font-size: 28px;
+}
+
+.app-title {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.main-container {
+  height: calc(100vh - 60px);
+}
+
+.app-aside {
   background-color: #f5f7fa;
+  border-right: 1px solid #e4e7ed;
+}
+
+.aside-menu {
+  border: none;
+  height: 100%;
+}
+
+.app-main {
+  background-color: #fff;
+  padding: 20px;
+  overflow-y: auto;
 }
 </style>
